@@ -321,11 +321,11 @@ const App = () => {
     const newBadges = [];
     const percentage = (currentScore / total) * 100;
 
-    if (percentage === 100) newBadges.push({ name: '완벽주의자', emoji: '🏆', desc: '100점 달성!' });
-    if (percentage >= 90) newBadges.push({ name: '한자박사', emoji: '🎓', desc: '90점 이상!' });
-    if (currentStreak >= 10) newBadges.push({ name: '연속득점왕', emoji: '🔥', desc: '10연속 정답!' });
-    if (currentStreak >= 5) newBadges.push({ name: '스트릭마스터', emoji: '⚡', desc: '5연속 정답!' });
-    if (total >= 50) newBadges.push({ name: '도전자', emoji: '💪', desc: '50문제 도전!' });
+    if (percentage === 100) newBadges.push({ name: '전설의 마스터', emoji: '👑', desc: '100점 달성!' });
+    if (percentage >= 90) newBadges.push({ name: '푸른 빛의 현자', emoji: '🔮', desc: '90점 이상!' });
+    if (currentStreak >= 10) newBadges.push({ name: '빛의 질주', emoji: '🌠', desc: '10연속 정답!' });
+    if (currentStreak >= 5) newBadges.push({ name: '집중의 오라', emoji: '✨', desc: '5연속 정답!' });
+    if (total >= 50) newBadges.push({ name: '끝없는 도전', emoji: '🏰', desc: '50문제 도전!' });
 
     return newBadges;
   };
@@ -432,87 +432,102 @@ const App = () => {
     }
   };
 
+  // 배경 래퍼 (Stars Background)
+  const BackgroundWrapper = ({ children }) => (
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      <div className="stars"></div>
+      <div className="relative z-10 w-full max-w-2xl">{children}</div>
+    </div>
+  );
+
   // 메뉴 화면
   if (gameMode === 'menu') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-2xl w-full">
-          <div className="text-center mb-6">
-            <h1 className="text-4xl font-bold text-indigo-600 mb-2">한태희의 도전!</h1>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">한자 맞추기 ⚡</h2>
-            <p className="text-gray-600 mb-1">50개 한자 · 문제당 10초 제한</p>
-            <p className="text-sm text-orange-600 font-semibold">⏱️ 시간 내에 정답을 맞춰보세요!</p>
+      <BackgroundWrapper>
+        <div className="glass-card rounded-3xl p-8 w-full text-center border-t border-blue-300/20">
+          <div className="mb-8 relative">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
+            <h1 className="text-4xl md:text-5xl font-bold text-cyan-200 mb-3 royal-text drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+              푸른 빛의 공주
+            </h1>
+            <h2 className="text-2xl md:text-3xl font-bold text-blue-100 mb-4 font-serif">
+              한자 맞추기 🔮
+            </h2>
+            <p className="text-blue-200/80 mb-2 font-light tracking-wide">50개의 별을 모으는 여정 · 10초의 마법</p>
           </div>
 
           {statistics && (
-            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 mb-4">
-              <div className="text-center mb-2">
-                <div className="text-sm font-bold text-indigo-700">📊 누적 기록</div>
+            <div className="glass-button rounded-2xl p-5 mb-6 border border-white/5">
+              <div className="text-center mb-3">
+                <div className="text-sm font-bold text-cyan-300 tracking-wider">📊 왕국의 기록</div>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="bg-white rounded-lg p-2">
-                  <div className="text-gray-600 text-xs">총 게임</div>
-                  <div className="text-lg font-bold text-indigo-600">{statistics.totalGames}회</div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="bg-slate-800/50 rounded-lg p-3 backdrop-blur-sm">
+                  <div className="text-slate-400 text-xs mb-1">총 도전</div>
+                  <div className="text-lg font-bold text-blue-300">{statistics.totalGames}회</div>
                 </div>
-                <div className="bg-white rounded-lg p-2">
-                  <div className="text-gray-600 text-xs">최고 점수</div>
-                  <div className="text-lg font-bold text-green-600">{statistics.bestScore}점</div>
+                <div className="bg-slate-800/50 rounded-lg p-3 backdrop-blur-sm">
+                  <div className="text-slate-400 text-xs mb-1">최고 점수</div>
+                  <div className="text-lg font-bold text-emerald-400">{statistics.bestScore}점</div>
                 </div>
-                <div className="bg-white rounded-lg p-2">
-                  <div className="text-gray-600 text-xs">총 정답률</div>
-                  <div className="text-lg font-bold text-blue-600">
+                <div className="bg-slate-800/50 rounded-lg p-3 backdrop-blur-sm">
+                  <div className="text-slate-400 text-xs mb-1">정답률</div>
+                  <div className="text-lg font-bold text-cyan-400">
                     {statistics.totalQuestions > 0
                       ? ((statistics.totalCorrect / statistics.totalQuestions) * 100).toFixed(1)
                       : 0}%
                   </div>
                 </div>
-                <div className="bg-white rounded-lg p-2">
-                  <div className="text-gray-600 text-xs">최고 연속</div>
-                  <div className="text-lg font-bold text-orange-600">{statistics.bestStreak}🔥</div>
+                <div className="bg-slate-800/50 rounded-lg p-3 backdrop-blur-sm">
+                  <div className="text-slate-400 text-xs mb-1">최고 연속</div>
+                  <div className="text-lg font-bold text-amber-400">{statistics.bestStreak}✨</div>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="space-y-3 mb-4">
+          <div className="space-y-4 mb-6">
             <div
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition-all"
+              className="group relative bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-5 text-white cursor-pointer hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all overflow-hidden"
               onClick={handleStartQuiz}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xl font-bold">⚡ 퀴즈 시작</div>
-                  <div className="text-sm opacity-90">50개 한자 랜덤 출제</div>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+              <div className="flex items-center justify-between relative z-10">
+                <div className="text-left">
+                  <div className="text-xl font-bold royal-text text-cyan-50">✨ 퀴즈 시작</div>
+                  <div className="text-sm text-blue-200">50개 한자 랜덤 출제</div>
                 </div>
-                <div className="text-3xl">→</div>
+                <div className="text-2xl group-hover:translate-x-1 transition-transform">💎</div>
               </div>
             </div>
 
             {wrongQuestions.length > 0 && (
               <div
-                className="bg-gradient-to-r from-purple-400 to-pink-500 rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition-all"
+                className="group relative bg-gradient-to-r from-purple-600 to-pink-700 rounded-xl p-5 text-white cursor-pointer hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-all overflow-hidden"
                 onClick={handleStartReview}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xl font-bold">📚 복습 모드</div>
-                    <div className="text-sm opacity-90">틀린 {wrongQuestions.length}개 문제 다시 풀기</div>
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="text-left">
+                    <div className="text-xl font-bold royal-text text-pink-50">🔮 복습 모드</div>
+                    <div className="text-sm text-pink-200">틀린 {wrongQuestions.length}개 기억 되살리기</div>
                   </div>
-                  <div className="text-3xl">→</div>
+                  <div className="text-2xl group-hover:translate-x-1 transition-transform">📚</div>
                 </div>
               </div>
             )}
 
             <div
-              className="bg-gradient-to-r from-green-400 to-teal-500 rounded-xl p-4 text-white cursor-pointer hover:shadow-lg transition-all"
+              className="group relative bg-gradient-to-r from-emerald-600 to-teal-700 rounded-xl p-5 text-white cursor-pointer hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] transition-all overflow-hidden"
               onClick={handleViewStats}
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xl font-bold">📈 학습 통계</div>
-                  <div className="text-sm opacity-90">한자별 정답률 및 약점 분석</div>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+              <div className="flex items-center justify-between relative z-10">
+                <div className="text-left">
+                  <div className="text-xl font-bold royal-text text-emerald-50">📈 마법서 기록</div>
+                  <div className="text-sm text-emerald-200">나의 학습 현황 분석</div>
                 </div>
-                <div className="text-3xl">→</div>
+                <div className="text-2xl group-hover:translate-x-1 transition-transform">📜</div>
               </div>
             </div>
           </div>
@@ -520,13 +535,13 @@ const App = () => {
           <div className="text-center">
             <button
               onClick={handleResetStats}
-              className="text-sm text-gray-500 hover:text-red-600 transition-colors"
+              className="text-xs text-slate-500 hover:text-red-400 transition-colors"
             >
-              🗑️ 기록 초기화
+              기록 초기화
             </button>
           </div>
         </div>
-      </div>
+      </BackgroundWrapper>
     );
   }
 
@@ -553,100 +568,108 @@ const App = () => {
       .slice(0, 10);
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-indigo-600">📈 학습 통계</h2>
+      <BackgroundWrapper>
+        <div className="glass-card rounded-3xl p-6 w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="flex justify-between items-center mb-6 shrink-0">
+            <h2 className="text-2xl font-bold text-cyan-200 royal-text">📈 마법서 기록</h2>
             <button
               onClick={handleBackToMenu}
-              className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+              className="bg-slate-700/50 text-slate-200 px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors text-sm"
             >
-              ← 메뉴로
+              ← 돌아가기
             </button>
           </div>
 
-          {/* 전체 통계 */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 mb-4">
-            <h3 className="text-lg font-bold text-gray-800 mb-3">🎯 전체 학습 현황</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-white rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600">총 게임 수</div>
-                <div className="text-2xl font-bold text-indigo-600">{statistics.totalGames}</div>
-              </div>
-              <div className="bg-white rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600">풀어본 문제</div>
-                <div className="text-2xl font-bold text-blue-600">{statistics.totalQuestions}</div>
-              </div>
-              <div className="bg-white rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600">전체 정답률</div>
-                <div className="text-2xl font-bold text-green-600">
-                  {statistics.totalQuestions > 0
-                    ? ((statistics.totalCorrect / statistics.totalQuestions) * 100).toFixed(1)
-                    : 0}%
+          <div className="overflow-y-auto pr-2 custom-scrollbar space-y-4">
+            {/* 전체 통계 */}
+            <div className="bg-slate-800/40 rounded-xl p-4 border border-white/5">
+              <h3 className="text-lg font-bold text-blue-200 mb-3 flex items-center gap-2">
+                <span>🎯</span> 전체 현황
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-slate-900/50 rounded-lg p-3 text-center border border-white/5">
+                  <div className="text-xs text-slate-400">총 게임</div>
+                  <div className="text-xl font-bold text-blue-300">{statistics.totalGames}</div>
+                </div>
+                <div className="bg-slate-900/50 rounded-lg p-3 text-center border border-white/5">
+                  <div className="text-xs text-slate-400">총 문제</div>
+                  <div className="text-xl font-bold text-purple-300">{statistics.totalQuestions}</div>
+                </div>
+                <div className="bg-slate-900/50 rounded-lg p-3 text-center border border-white/5">
+                  <div className="text-xs text-slate-400">정답률</div>
+                  <div className="text-xl font-bold text-emerald-300">
+                    {statistics.totalQuestions > 0
+                      ? ((statistics.totalCorrect / statistics.totalQuestions) * 100).toFixed(1)
+                      : 0}%
+                  </div>
+                </div>
+                <div className="bg-slate-900/50 rounded-lg p-3 text-center border border-white/5">
+                  <div className="text-xs text-slate-400">최고 연속</div>
+                  <div className="text-xl font-bold text-amber-300">{statistics.bestStreak}🔥</div>
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600">최고 연속</div>
-                <div className="text-2xl font-bold text-orange-600">{statistics.bestStreak}🔥</div>
+            </div>
+
+            {/* 약점 한자 */}
+            <div className="bg-red-900/20 rounded-xl p-4 border border-red-500/20">
+              <h3 className="text-lg font-bold text-red-200 mb-3 flex items-center gap-2">
+                <span>⚠️</span> 보완이 필요한 마법
+              </h3>
+              <div className="space-y-2">
+                {weakHanja.length > 0 ? (
+                  weakHanja.map((h, idx) => (
+                    <div key={idx} className="bg-slate-900/60 rounded-lg p-3 flex items-center justify-between border-l-4 border-red-500">
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl font-bold text-white">{h.hanja}</div>
+                        <div className="text-sm text-slate-300">{h.hun} {h.eum}</div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-xs text-slate-500">
+                          {h.stats.correct}/{h.stats.total}
+                        </div>
+                        <div className={`font-bold ${h.accuracy < 50 ? 'text-red-400' : 'text-orange-400'}`}>
+                          {h.accuracy.toFixed(0)}%
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-slate-500 py-4 text-sm">아직 충분한 데이터가 없습니다</div>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* 약점 한자 */}
-          <div className="bg-red-50 rounded-xl p-4 mb-4">
-            <h3 className="text-lg font-bold text-red-700 mb-3">⚠️ 약점 한자 TOP 10</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {weakHanja.length > 0 ? (
-                weakHanja.map((h, idx) => (
-                  <div key={idx} className="bg-white rounded-lg p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl font-bold text-gray-800">{h.hanja}</div>
-                      <div className="text-sm text-gray-600">{h.hun} {h.eum}</div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-xs text-gray-500">
-                        {h.stats.correct}/{h.stats.total}
+            {/* 강점 한자 */}
+            <div className="bg-emerald-900/20 rounded-xl p-4 border border-emerald-500/20">
+              <h3 className="text-lg font-bold text-emerald-200 mb-3 flex items-center gap-2">
+                <span>✨</span> 마스터한 마법
+              </h3>
+              <div className="space-y-2">
+                {strongHanja.length > 0 ? (
+                  strongHanja.map((h, idx) => (
+                    <div key={idx} className="bg-slate-900/60 rounded-lg p-3 flex items-center justify-between border-l-4 border-emerald-500">
+                      <div className="flex items-center gap-3">
+                        <div className="text-2xl font-bold text-white">{h.hanja}</div>
+                        <div className="text-sm text-slate-300">{h.hun} {h.eum}</div>
                       </div>
-                      <div className={`font-bold ${h.accuracy < 50 ? 'text-red-600' : 'text-orange-600'}`}>
-                        {h.accuracy.toFixed(0)}%
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center text-gray-500 py-4">아직 충분한 데이터가 없습니다 (최소 3회 출제)</div>
-              )}
-            </div>
-          </div>
-
-          {/* 강점 한자 */}
-          <div className="bg-green-50 rounded-xl p-4">
-            <h3 className="text-lg font-bold text-green-700 mb-3">✨ 강점 한자 TOP 10</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {strongHanja.length > 0 ? (
-                strongHanja.map((h, idx) => (
-                  <div key={idx} className="bg-white rounded-lg p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl font-bold text-gray-800">{h.hanja}</div>
-                      <div className="text-sm text-gray-600">{h.hun} {h.eum}</div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-xs text-gray-500">
-                        {h.stats.correct}/{h.stats.total}
-                      </div>
-                      <div className="font-bold text-green-600">
-                        {h.accuracy.toFixed(0)}%
+                      <div className="flex items-center gap-4">
+                        <div className="text-xs text-slate-500">
+                          {h.stats.correct}/{h.stats.total}
+                        </div>
+                        <div className="font-bold text-emerald-400">
+                          {h.accuracy.toFixed(0)}%
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center text-gray-500 py-4">아직 충분한 데이터가 없습니다 (최소 3회 출제)</div>
-              )}
+                  ))
+                ) : (
+                  <div className="text-center text-slate-500 py-4 text-sm">아직 충분한 데이터가 없습니다</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </BackgroundWrapper>
     );
   }
 
@@ -657,148 +680,149 @@ const App = () => {
     let emoji = '';
 
     if (percentage >= 90) {
-      message = '완벽해요! 한자 박사님이세요! 🎓';
+      message = '완벽해요! 푸른 빛의 마스터시군요! 👑';
       emoji = '🏆';
     } else if (percentage >= 70) {
-      message = '대단해요! 정말 잘하셨어요! 👏';
+      message = '대단해요! 아주 훌륭한 실력이에요! 👏';
       emoji = '🌟';
     } else if (percentage >= 50) {
-      message = '잘했어요! 조금만 더 연습하면 완벽할 거예요! 💪';
-      emoji = '🎯';
+      message = '잘했어요! 빛이 점점 더 밝아지고 있어요! ✨';
+      emoji = '💫';
     } else {
-      message = '괜찮아요! 다시 도전해봐요! 화이팅! 🔥';
-      emoji = '📚';
+      message = '괜찮아요! 다시 도전하면 더 빛날 거예요! 🔥';
+      emoji = '🕯️';
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-2xl w-full">
-          <div className="text-center">
-            <div className="text-5xl mb-3">{emoji}</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-3">퀴즈 완료!</h2>
-            <div className="text-5xl font-bold text-indigo-600 mb-1">{score}/{questions.length}</div>
-            <div className="text-xl text-gray-600 mb-3">{percentage}점</div>
-            <p className="text-lg text-gray-700 mb-4">{message}</p>
+      <BackgroundWrapper>
+        <div className="glass-card rounded-3xl p-8 w-full text-center border-t border-cyan-400/20">
+          <div className="mb-6">
+            <div className="text-6xl mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] animate-bounce">{emoji}</div>
+            <h2 className="text-3xl font-bold text-white mb-2 royal-text">도전 완료!</h2>
+            <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400 mb-2 drop-shadow-sm">
+              {score}/{questions.length}
+            </div>
+            <div className="text-xl text-blue-200 mb-6">{percentage}점</div>
+            <p className="text-lg text-slate-200 mb-6 font-light">{message}</p>
 
             {badges.length > 0 && (
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 mb-4">
-                <div className="text-lg font-bold text-gray-800 mb-2">🎖️ 획득한 배지</div>
+              <div className="bg-amber-900/20 rounded-xl p-4 mb-6 border border-amber-500/20">
+                <div className="text-sm font-bold text-amber-200 mb-3 tracking-widest uppercase">획득한 유물</div>
                 <div className="flex flex-wrap justify-center gap-2">
                   {badges.map((badge, idx) => (
-                    <div key={idx} className="bg-white rounded-lg px-3 py-2 shadow-md">
-                      <div className="text-2xl">{badge.emoji}</div>
-                      <div className="text-xs font-semibold text-gray-700">{badge.name}</div>
-                      <div className="text-xs text-gray-500">{badge.desc}</div>
+                    <div key={idx} className="bg-slate-900/80 rounded-lg px-3 py-2 border border-amber-500/30 flex items-center gap-2 shadow-lg">
+                      <span className="text-xl">{badge.emoji}</span>
+                      <div className="text-left">
+                        <div className="text-xs font-bold text-amber-100">{badge.name}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="bg-gray-50 rounded-xl p-4 mb-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-green-100 rounded-lg p-3">
-                  <div className="text-green-700 text-sm font-semibold">정답</div>
-                  <div className="text-xl font-bold text-green-800">{score}</div>
-                </div>
-                <div className="bg-red-100 rounded-lg p-3">
-                  <div className="text-red-700 text-sm font-semibold">오답</div>
-                  <div className="text-xl font-bold text-red-800">{questions.length - score}</div>
-                </div>
-                <div className="bg-orange-100 rounded-lg p-3">
-                  <div className="text-orange-700 text-sm font-semibold">최고 연속</div>
-                  <div className="text-xl font-bold text-orange-800">{maxStreak}🔥</div>
-                </div>
+            <div className="grid grid-cols-3 gap-3 mb-8">
+              <div className="bg-emerald-900/30 rounded-lg p-3 border border-emerald-500/30">
+                <div className="text-emerald-400 text-xs font-semibold mb-1">정답</div>
+                <div className="text-2xl font-bold text-emerald-100">{score}</div>
+              </div>
+              <div className="bg-red-900/30 rounded-lg p-3 border border-red-500/30">
+                <div className="text-red-400 text-xs font-semibold mb-1">오답</div>
+                <div className="text-2xl font-bold text-red-100">{questions.length - score}</div>
+              </div>
+              <div className="bg-amber-900/30 rounded-lg p-3 border border-amber-500/30">
+                <div className="text-amber-400 text-xs font-semibold mb-1">최고 연속</div>
+                <div className="text-2xl font-bold text-amber-100">{maxStreak}🔥</div>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <button
                 onClick={handleBackToMenu}
-                className="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition-colors shadow-lg"
+                className="w-full glass-button bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-xl text-lg font-bold hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all"
               >
-                메인 메뉴로 🏠
+                왕국으로 귀환 🏰
               </button>
 
               {wrongQuestions.length > 0 && (
                 <button
                   onClick={handleStartReview}
-                  className="w-full bg-purple-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-purple-700 transition-colors shadow-lg"
+                  className="w-full glass-button bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl text-base font-semibold hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-all"
                 >
-                  틀린 문제 복습하기 📚 ({wrongQuestions.length}개)
+                  오답 노트 복습 🔮 ({wrongQuestions.length})
                 </button>
               )}
 
               <button
                 onClick={handleViewStats}
-                className="w-full bg-green-600 text-white px-6 py-3 rounded-xl text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg"
+                className="w-full text-slate-400 hover:text-white transition-colors text-sm py-2"
               >
-                학습 통계 보기 📈
+                기록 확인하기
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </BackgroundWrapper>
     );
   }
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-2xl text-gray-700">퀴즈 준비 중...</div>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-blue-200">
+        <div className="animate-pulse">마법 소환 중...</div>
       </div>
     );
   }
 
   const currentQ = questions[currentQuestion];
-  const modeLabel = gameMode === 'review' ? '📚 복습 모드' : '⚡ 퀴즈 모드';
-  const timerColor = timeLeft <= 3 ? 'text-red-600' : timeLeft <= 5 ? 'text-orange-600' : 'text-green-600';
+  const modeLabel = gameMode === 'review' ? '🔮 복습 모드' : '✨ 퀴즈 모드';
+  const timerColor = timeLeft <= 3 ? 'text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.8)]' : timeLeft <= 5 ? 'text-amber-400' : 'text-cyan-400';
   const progressPercent = (timeLeft / 10) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-5 max-w-3xl w-full">
+    <BackgroundWrapper>
+      <div className="glass-card rounded-3xl p-6 w-full border-t border-cyan-500/20">
         {/* Header */}
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-3">
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
             <div>
-              <h1 className="text-2xl font-bold text-indigo-600">한태희의 한자 퀴즈</h1>
-              <div className="text-sm text-gray-600">{modeLabel}</div>
+              <h1 className="text-xl font-bold text-cyan-200 royal-text">푸른 빛의 한자</h1>
+              <div className="text-xs text-blue-300/70">{modeLabel}</div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-gray-500">점수</div>
-              <div className="text-2xl font-bold text-indigo-600">{score}/{questions.length}</div>
+              <div className="text-xs text-slate-400">점수</div>
+              <div className="text-2xl font-bold text-white">{score}<span className="text-slate-500 text-sm">/{questions.length}</span></div>
               {streak > 0 && (
-                <div className="text-sm font-bold text-orange-600">🔥 {streak}연속</div>
+                <div className="text-sm font-bold text-amber-400 animate-pulse">🔥 {streak}연속</div>
               )}
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="relative mb-2">
-            <div className="flex mb-1 items-center justify-between text-xs">
-              <span className="font-semibold text-gray-700">문제 {currentQuestion + 1} / {questions.length}</span>
-              <span className="font-semibold text-gray-700">{((currentQuestion / questions.length) * 100).toFixed(0)}%</span>
+          <div className="relative mb-4">
+            <div className="flex mb-1 items-center justify-between text-xs text-slate-400">
+              <span>진행률</span>
+              <span>{((currentQuestion / questions.length) * 100).toFixed(0)}%</span>
             </div>
-            <div className="overflow-hidden h-2 flex rounded-full bg-indigo-100">
+            <div className="overflow-hidden h-1.5 flex rounded-full bg-slate-700/50">
               <div
                 style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
-                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-600 transition-all duration-500"
+                className="shadow-[0_0_10px_rgba(34,211,238,0.6)] flex flex-col text-center whitespace-nowrap text-white justify-center bg-cyan-400 transition-all duration-500"
               />
             </div>
           </div>
 
           {/* Timer */}
           {!showFeedback && (
-            <div className="bg-gray-50 rounded-lg p-2">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-600">남은 시간</span>
-                <span className={`text-2xl font-bold ${timerColor}`}>⏱️ {timeLeft}초</span>
+            <div className="bg-slate-800/50 rounded-xl p-3 border border-white/5 relative overflow-hidden">
+              <div className="flex items-center justify-between mb-2 relative z-10">
+                <span className="text-xs text-slate-400">남은 시간</span>
+                <span className={`text-2xl font-bold font-mono ${timerColor}`}>{timeLeft}</span>
               </div>
-              <div className="overflow-hidden h-2 flex rounded-full bg-gray-200">
+              <div className="overflow-hidden h-1 flex rounded-full bg-slate-700/50 relative z-10">
                 <div
                   style={{ width: `${progressPercent}%` }}
-                  className={`transition-all duration-1000 ${timeLeft <= 3 ? 'bg-red-500' : timeLeft <= 5 ? 'bg-orange-500' : 'bg-green-500'
+                  className={`transition-all duration-1000 ${timeLeft <= 3 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]'
                     }`}
                 />
               </div>
@@ -807,25 +831,26 @@ const App = () => {
         </div>
 
         {/* Question */}
-        <div className="mb-4">
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-center shadow-lg">
-            <h2 className="text-3xl font-bold text-white">{currentQ.question}</h2>
+        <div className="mb-6 relative">
+          <div className="absolute inset-0 bg-blue-500/10 blur-xl rounded-full"></div>
+          <div className="relative glass-button bg-gradient-to-br from-indigo-900/50 to-slate-900/50 rounded-2xl p-8 text-center border border-indigo-400/30">
+            <h2 className="text-4xl font-bold text-white royal-text drop-shadow-md">{currentQ.question}</h2>
           </div>
         </div>
 
         {/* Options - 2x2 Grid */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           {currentQ.options.map((option, index) => {
-            let buttonClass = "w-full p-4 text-lg font-semibold rounded-xl transition-all duration-200 border-2 ";
+            let buttonClass = "w-full p-5 text-lg font-semibold rounded-xl transition-all duration-300 border relative overflow-hidden ";
 
             if (!showFeedback) {
-              buttonClass += "bg-white border-gray-300 hover:border-indigo-500 hover:bg-indigo-50 text-gray-800";
+              buttonClass += "bg-slate-800/40 border-slate-600/30 hover:border-cyan-400/50 hover:bg-slate-700/50 text-slate-200 hover:text-white hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]";
             } else if (option.isCorrect) {
-              buttonClass += "bg-green-500 border-green-600 text-white shadow-lg scale-105";
+              buttonClass += "bg-emerald-500/20 border-emerald-400 text-emerald-100 shadow-[0_0_20px_rgba(52,211,153,0.4)] scale-105 z-10";
             } else if (selectedAnswer === option.text) {
-              buttonClass += "bg-red-500 border-red-600 text-white shadow-lg";
+              buttonClass += "bg-red-500/20 border-red-400 text-red-100";
             } else {
-              buttonClass += "bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed";
+              buttonClass += "bg-slate-900/20 border-transparent text-slate-600 opacity-50";
             }
 
             return (
@@ -835,10 +860,9 @@ const App = () => {
                 disabled={showFeedback}
                 className={buttonClass}
               >
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-2 relative z-10">
                   <span className="break-all">{option.text}</span>
-                  {showFeedback && option.isCorrect && <span className="text-2xl">✓</span>}
-                  {showFeedback && selectedAnswer === option.text && !option.isCorrect && <span className="text-2xl">✗</span>}
+                  {showFeedback && option.isCorrect && <span className="text-xl animate-pulse">✨</span>}
                 </div>
               </button>
             );
@@ -847,25 +871,25 @@ const App = () => {
 
         {/* Feedback */}
         {showFeedback && (
-          <div className="mb-3">
-            <div className={`rounded-xl p-4 ${isCorrect ? 'bg-green-50 border-2 border-green-300' : 'bg-red-50 border-2 border-red-300'}`}>
+          <div className="mb-2 animate-fade-in-up">
+            <div className={`rounded-xl p-4 border ${isCorrect ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-red-900/20 border-red-500/30'}`}>
               <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-2">{isCorrect ? '🎉' : (timeLeft === 0 ? '⏰' : '💪')}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl filter drop-shadow-lg">{isCorrect ? '🎉' : (timeLeft === 0 ? '⏰' : '💧')}</span>
                   <div>
-                    <div className={`text-lg font-bold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-                      {isCorrect ? '정답입니다!' : timeLeft === 0 ? '시간 초과!' : '아쉬워요!'}
+                    <div className={`text-lg font-bold ${isCorrect ? 'text-emerald-300' : 'text-red-300'}`}>
+                      {isCorrect ? '정답입니다!' : timeLeft === 0 ? '시간이 다 됐어요...' : '틀렸습니다...'}
                     </div>
                     {!isCorrect && (
-                      <div className="text-gray-700 text-sm">
-                        정답: <span className="font-bold text-green-700">{currentQ.correctAnswer}</span>
+                      <div className="text-slate-300 text-sm mt-1">
+                        정답은 <span className="font-bold text-emerald-300 underline underline-offset-2">{currentQ.correctAnswer}</span> 입니다.
                       </div>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={handleNextQuestion}
-                  className="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-md"
+                  className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-lg font-semibold transition-colors border border-white/10"
                 >
                   {currentQuestion + 1 < questions.length ? '다음 →' : '결과 보기'}
                 </button>
@@ -875,12 +899,12 @@ const App = () => {
         )}
 
         {!showFeedback && (
-          <div className="text-center text-gray-500 text-xs">
-            ⚡ 10초 안에 정답을 선택하세요!
+          <div className="text-center text-slate-500 text-xs mt-4">
+            ⚡ 10초의 마법이 흐르고 있습니다
           </div>
         )}
       </div>
-    </div>
+    </BackgroundWrapper>
   );
 };
 
