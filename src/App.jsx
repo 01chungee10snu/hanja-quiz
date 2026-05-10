@@ -87,8 +87,33 @@ const WORDS_6 = [
   { w: '希望', r: '희망', m: '앞으로 잘되기를 바라는 마음' }
 ];
 
+
+const IDIOMS = [
+  { w: '一石二鳥', r: '일석이조', m: '한 가지 일로 두 가지 이익을 얻음' },
+  { w: '九死一生', r: '구사일생', m: '죽을 고비를 넘기고 겨우 살아남' },
+  { w: '大器晩成', r: '대기만성', m: '큰 인물은 늦게 이루어짐' },
+  { w: '同苦同樂', r: '동고동락', m: '괴로움과 즐거움을 함께함' },
+  { w: '東問西答', r: '동문서답', m: '묻는 말에 엉뚱하게 대답함' },
+  { w: '有名無實', r: '유명무실', m: '이름만 있고 실제 내용은 없음' },
+  { w: '自業自得', r: '자업자득', m: '자기가 한 일의 결과를 자기가 받음' },
+  { w: '作心三日', r: '작심삼일', m: '굳게 먹은 마음이 오래가지 못함' },
+  { w: '走馬看山', r: '주마간산', m: '자세히 보지 않고 대충 훑어봄' },
+  { w: '靑出於藍', r: '청출어람', m: '제자가 스승보다 더 뛰어남' },
+  { w: '朝三暮四', r: '조삼모사', m: '눈앞의 차이로 남을 속이거나 현혹함' },
+  { w: '雪上加霜', r: '설상가상', m: '어려운 일에 또 어려운 일이 더해짐' },
+  { w: '事必歸正', r: '사필귀정', m: '모든 일은 결국 바른 데로 돌아감' },
+  { w: '以心傳心', r: '이심전심', m: '말하지 않아도 마음이 서로 통함' },
+  { w: '見物生心', r: '견물생심', m: '물건을 보면 가지고 싶은 마음이 생김' },
+  { w: '苦盡甘來', r: '고진감래', m: '고생 끝에 즐거움이 옴' },
+  { w: '十人十色', r: '십인십색', m: '사람마다 생각과 취향이 다름' },
+  { w: '千辛萬苦', r: '천신만고', m: '온갖 어려운 고생을 다 겪음' },
+  { w: '百發百中', r: '백발백중', m: '쏘거나 예상한 것이 모두 들어맞음' },
+  { w: '山戰水戰', r: '산전수전', m: '세상의 온갖 고생과 경험을 다 겪음' }
+];
+
 const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
 const labelHanja = (item) => `${item.hun} ${item.eum}`;
+const labelIdiom = (item) => `${item.w} (${item.r})`;
 const labelTriple = (items) => items.map((item) => item.w).join(' · ');
 const readTriple = (items) => items.map((item) => item.r).join(' → ');
 
@@ -149,7 +174,16 @@ function buildQuestionPool() {
     options: makeOptions(labelTriple(triple), triples.filter((items) => labelTriple(items) !== labelTriple(triple)), labelTriple)
   }));
 
-  return shuffle([...type1, ...type2, ...type3, ...type4]);
+  const type5 = IDIOMS.map((item) => ({
+    typeNo: 5,
+    kind: '유형5 · 사자성어 맞추기',
+    prompt: item.m,
+    helper: '뜻에 알맞은 사자성어를 고르세요.',
+    answer: labelIdiom(item),
+    options: makeOptions(labelIdiom(item), IDIOMS.filter((v) => v.w !== item.w), labelIdiom)
+  }));
+
+  return shuffle([...type1, ...type2, ...type3, ...type4, ...type5]);
 }
 
 export default function App() {
@@ -207,7 +241,7 @@ export default function App() {
             <div>
               <p className="text-xs font-bold tracking-[0.25em] text-cyan-300/80">6급 자격증 대비</p>
               <h1 className="royal-text text-3xl md:text-5xl font-bold text-cyan-100 mt-1">한자 음훈과 한자단어 퀴즈</h1>
-              <p className="text-blue-200/80 mt-2">4개 유형으로 분류해서 5지선다 랜덤 출제합니다. 보기 글자도 크게 키웠습니다.</p>
+              <p className="text-blue-200/80 mt-2">5개 유형으로 분류해서 5지선다 랜덤 출제합니다. 사자성어 문제도 함께 연습합니다.</p>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center min-w-64">
               <div className="bg-slate-900/50 rounded-xl p-3 border border-white/5">
