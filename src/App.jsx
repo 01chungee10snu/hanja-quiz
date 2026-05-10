@@ -89,6 +89,9 @@ const WORDS_6 = [
 
 const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
 const labelHanja = (item) => `${item.hun} ${item.eum}`;
+const labelTriple = (items) => items.map((item) => item.w).join(' · ');
+const readTriple = (items) => items.map((item) => item.r).join(' → ');
+
 const makeOptions = (answer, pool, pick) => {
   const seen = new Set([answer]);
   const wrong = shuffle(pool).map(pick).filter((value) => {
@@ -99,44 +102,54 @@ const makeOptions = (answer, pool, pick) => {
   return shuffle([answer, ...wrong]).map((text) => ({ text, isCorrect: text === answer }));
 };
 
+const makeWordTriples = (words) => {
+  const shuffled = shuffle(words);
+  const triples = [];
+  for (let i = 0; i <= shuffled.length - 3; i += 3) {
+    triples.push(shuffled.slice(i, i + 3));
+  }
+  return triples;
+};
+
 function buildQuestionPool() {
-  const hanjaQuestions = HANJA_6.flatMap((item) => [
-    {
-      kind: '한자 음훈',
-      prompt: `'${item.h}'의 음훈은?`,
-      answer: labelHanja(item),
-      options: makeOptions(labelHanja(item), HANJA_6.filter((v) => v.h !== item.h), labelHanja)
-    },
-    {
-      kind: '한자 선택',
-      prompt: `'${labelHanja(item)}'의 한자는?`,
-      answer: item.h,
-      options: makeOptions(item.h, HANJA_6.filter((v) => v.h !== item.h), (v) => v.h)
-    }
-  ]);
+  const type1 = HANJA_6.map((item) => ({
+    typeNo: 1,
+    kind: '유형1 · 한자보고 음훈 맞추기',
+    prompt: item.h,
+    helper: '이 한자의 음훈을 고르세요.',
+    answer: labelHanja(item),
+    options: makeOptions(labelHanja(item), HANJA_6.filter((v) => v.h !== item.h), labelHanja)
+  }));
 
-  const wordQuestions = WORDS_6.flatMap((item) => [
-    {
-      kind: '한자단어 뜻',
-      prompt: `'${item.w}(${item.r})'의 뜻은?`,
-      answer: item.m,
-      options: makeOptions(item.m, WORDS_6.filter((v) => v.w !== item.w), (v) => v.m)
-    },
-    {
-      kind: '한자단어 선택',
-      prompt: `'${item.m}'에 알맞은 한자어는?`,
-      answer: `${item.w} (${item.r})`,
-      options: makeOptions(`${item.w} (${item.r})`, WORDS_6.filter((v) => v.w !== item.w), (v) => `${v.w} (${v.r})`)
-    },
-    {
-      kind: '한자단어 독음',
-      prompt: `'${item.r}'의 한자 표기는?`,
-      answer: item.w,
-      options: makeOptions(item.w, WORDS_6.filter((v) => v.w !== item.w), (v) => v.w)
-    }
-  ]);
+  const type2 = HANJA_6.map((item) => ({
+    typeNo: 2,
+    kind: '유형2 · 음훈 보고 한자 맞추기',
+    prompt: labelHanja(item),
+    helper: '이 음훈에 맞는 한자를 고르세요.',
+    answer: item.h,
+    options: makeOptions(item.h, HANJA_6.filter((v) => v.h !== item.h), (v) => v.h)
+  }));
 
-  return shuffle([...hanjaQuestions, ...wordQuestions]);
+  const type3 = WORDS_6.map((item) => ({
+    typeNo: 3,
+    kind: '유형3 · 한글 음만 보고 한자 단어 맞추기',
+    prompt: item.r,
+    helper: '한글 음에 맞는 한자 단어를 고르세요.',
+    answer: item.w,
+    options: makeOptions(item.w, WORDS_6.filter((v) => v.w !== item.w), (v) => v.w)
+  }));
+
+  const triples = makeWordTriples(WORDS_6);
+  const type4 = triples.map((triple) => ({
+    typeNo: 4,
+    kind: '유형4 · 한글 음만 보고 한자 단어 3개 연속 맞추기',
+    prompt: readTriple(triple),
+    helper: '순서대로 맞는 한자 단어 3개 묶음을 고르세요.',
+    answer: labelTriple(triple),
+    options: makeOptions(labelTriple(triple), triples.filter((items) => labelTriple(items) !== labelTriple(triple)), labelTriple)
+  }));
+
+  return shuffle([...type1, ...type2, ...type3, ...type4]);
 }
 
 export default function App() {
@@ -194,7 +207,7 @@ export default function App() {
             <div>
               <p className="text-xs font-bold tracking-[0.25em] text-cyan-300/80">6급 자격증 대비</p>
               <h1 className="royal-text text-3xl md:text-5xl font-bold text-cyan-100 mt-1">한자 음훈과 한자단어 퀴즈</h1>
-              <p className="text-blue-200/80 mt-2">한자 음훈, 한자 선택, 단어 뜻, 단어 독음을 섞어 5지선다로 랜덤 출제합니다.</p>
+              <p className="text-blue-200/80 mt-2">4개 유형으로 분류해서 5지선다 랜덤 출제합니다. 보기 글자도 크게 키웠습니다.</p>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center min-w-64">
               <div className="bg-slate-900/50 rounded-xl p-3 border border-white/5">
@@ -225,11 +238,12 @@ export default function App() {
               </div>
 
               <div className="glass-button rounded-2xl p-8 text-center border border-indigo-400/30 mb-5">
-                <p className="text-sm font-bold tracking-widest text-cyan-200/80 mb-3">{current.kind}</p>
-                <h2 className="royal-text text-3xl md:text-5xl font-bold text-white leading-tight">{current.prompt}</h2>
+                <p className="text-sm md:text-base font-bold tracking-widest text-cyan-200/80 mb-3">{current.kind}</p>
+                <h2 className="royal-text text-5xl md:text-7xl font-bold text-white leading-tight">{current.prompt}</h2>
+                <p className="text-blue-100/75 mt-4 text-base md:text-lg">{current.helper}</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {current.options.map((option) => {
                   const revealed = Boolean(selected);
                   const picked = selected === option.text;
@@ -247,7 +261,7 @@ export default function App() {
                       type="button"
                       onClick={() => choose(option)}
                       disabled={revealed}
-                      className={`min-h-16 rounded-xl border p-4 text-lg font-bold transition-all ${tone}`}
+                      className={`min-h-24 rounded-2xl border p-5 text-2xl md:text-3xl font-bold leading-snug transition-all ${tone}`}
                     >
                       {option.text}
                     </button>
