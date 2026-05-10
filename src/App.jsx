@@ -117,6 +117,15 @@ const labelIdiom = (item) => `${item.w} (${item.r})`;
 const labelTriple = (items) => items.map((item) => item.w).join(' · ');
 const readTriple = (items) => items.map((item) => item.r).join(' → ');
 
+const QUIZ_TYPES = [
+  { typeNo: 'all', title: '전체 랜덤', desc: '5개 유형을 모두 섞어서 풀기', badge: 'ALL' },
+  { typeNo: 1, title: '유형1 · 한자 → 음훈', desc: '한자를 보고 알맞은 음훈 고르기', badge: '漢' },
+  { typeNo: 2, title: '유형2 · 음훈 → 한자', desc: '음훈을 보고 알맞은 한자 고르기', badge: '훈' },
+  { typeNo: 3, title: '유형3 · 한글 음 → 단어', desc: '한글 음만 보고 한자 단어 고르기', badge: '語' },
+  { typeNo: 4, title: '유형4 · 단어 3개 연속', desc: '한글 음 3개에 맞는 한자 단어 묶음 고르기', badge: '3' },
+  { typeNo: 5, title: '유형5 · 사자성어', desc: '뜻/풀이를 보고 사자성어 고르기', badge: '成' }
+];
+
 const makeOptions = (answer, pool, pick) => {
   const seen = new Set([answer]);
   const wrong = shuffle(pool).map(pick).filter((value) => {
@@ -136,7 +145,7 @@ const makeWordTriples = (words) => {
   return triples;
 };
 
-function buildQuestionPool() {
+function buildQuestionPool(selectedType = 'all') {
   const type1 = HANJA_6.map((item) => ({
     typeNo: 1,
     kind: '유형1 · 한자보고 음훈 맞추기',
@@ -183,10 +192,24 @@ function buildQuestionPool() {
     options: makeOptions(labelIdiom(item), IDIOMS.filter((v) => v.w !== item.w), labelIdiom)
   }));
 
-  return shuffle([...type1, ...type2, ...type3, ...type4, ...type5]);
+  const pools = { 1: type1, 2: type2, 3: type3, 4: type4, 5: type5 };
+  if (selectedType === 'all') return shuffle(Object.values(pools).flat());
+  return shuffle(pools[selectedType] ?? Object.values(pools).flat());
+}
+
+function getTypeCount(typeNo) {
+  if (typeNo === 'all') {
+    return HANJA_6.length * 2 + WORDS_6.length + Math.floor(WORDS_6.length / 3) + IDIOMS.length;
+  }
+  if (typeNo === 1 || typeNo === 2) return HANJA_6.length;
+  if (typeNo === 3) return WORDS_6.length;
+  if (typeNo === 4) return Math.floor(WORDS_6.length / 3);
+  if (typeNo === 5) return IDIOMS.length;
+  return 0;
 }
 
 export default function App() {
+  const [selectedType, setSelectedType] = useState(null);
   const [questions, setQuestions] = useState(() => buildQuestionPool());
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -201,8 +224,21 @@ export default function App() {
     [answers]
   );
 
+  const startQuiz = (typeNo) => {
+    setSelectedType(typeNo);
+    setQuestions(buildQuestionPool(typeNo));
+    setIndex(0);
+    setSelected(null);
+    setAnswers([]);
+    setFinished(false);
+  };
+
   const startNew = () => {
-    setQuestions(buildQuestionPool());
+    startQuiz(selectedType ?? 'all');
+  };
+
+  const backToLanding = () => {
+    setSelectedType(null);
     setIndex(0);
     setSelected(null);
     setAnswers([]);
@@ -241,7 +277,7 @@ export default function App() {
             <div>
               <p className="text-xs font-bold tracking-[0.25em] text-cyan-300/80">6급 자격증 대비</p>
               <h1 className="royal-text text-3xl md:text-5xl font-bold text-cyan-100 mt-1">한자 음훈과 한자단어 퀴즈</h1>
-              <p className="text-blue-200/80 mt-2">5개 유형으로 분류해서 5지선다 랜덤 출제합니다. 사자성어 문제도 함께 연습합니다.</p>
+              <p className="text-blue-200/80 mt-2">랜딩페이지에서 원하는 유형을 고른 뒤 5지선다 랜덤 퀴즈를 시작합니다.</p>
             </div>
             <div className="grid grid-cols-3 gap-2 text-center min-w-64">
               <div className="bg-slate-900/50 rounded-xl p-3 border border-white/5">
@@ -254,12 +290,43 @@ export default function App() {
               </div>
               <div className="bg-slate-900/50 rounded-xl p-3 border border-white/5">
                 <div className="text-xs text-slate-400">문항</div>
-                <div className="text-2xl font-bold text-blue-300">{index + 1}/{questions.length}</div>
+                <div className="text-2xl font-bold text-blue-300">{selectedType ? `${index + 1}/${questions.length}` : '선택'}</div>
               </div>
             </div>
           </header>
 
-          {!finished ? (
+          {!selectedType ? (
+            <div className="space-y-6">
+              <div className="glass-button rounded-2xl p-6 border border-indigo-400/30 text-center">
+                <p className="text-sm font-bold tracking-widest text-cyan-200/80 mb-2">퀴즈 유형 선택</p>
+                <h2 className="royal-text text-3xl md:text-5xl font-bold text-white">오늘 풀 유형을 고르세요</h2>
+                <p className="text-blue-100/75 mt-3">전체 랜덤 또는 특정 유형만 골라 집중 연습할 수 있습니다.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {QUIZ_TYPES.map((type) => (
+                  <button
+                    key={type.typeNo}
+                    type="button"
+                    onClick={() => startQuiz(type.typeNo)}
+                    className="group text-left rounded-2xl border border-slate-600/40 bg-slate-800/50 p-5 transition-all hover:-translate-y-1 hover:border-cyan-300 hover:bg-slate-700/70 hover:shadow-[0_0_18px_rgba(34,211,238,0.22)]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-400/10 text-2xl font-bold text-cyan-100 border border-cyan-300/20">
+                        {type.badge}
+                      </div>
+                      <span className="rounded-full bg-slate-950/60 px-3 py-1 text-xs font-bold text-blue-200 border border-white/10">
+                        {getTypeCount(type.typeNo)}문항
+                      </span>
+                    </div>
+                    <h3 className="mt-4 text-xl font-bold text-white group-hover:text-cyan-100">{type.title}</h3>
+                    <p className="mt-2 text-sm text-slate-300 leading-relaxed">{type.desc}</p>
+                    <div className="mt-4 text-sm font-bold text-cyan-200">시작하기 →</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : !finished ? (
             <>
               <div className="mb-5">
                 <div className="flex justify-between text-xs text-slate-400 mb-1">
@@ -324,9 +391,14 @@ export default function App() {
               <div className="text-6xl mb-4">🏆</div>
               <h2 className="royal-text text-4xl font-bold text-white mb-2">이번 세션 채점 완료</h2>
               <p className="text-blue-200 mb-6">{score}/{answers.length} 정답 · 정답률 {percentage}%</p>
-              <button onClick={startNew} className="glass-button bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-xl text-lg font-bold mb-6">
-                새 랜덤 세트 시작
-              </button>
+              <div className="flex flex-col sm:flex-row justify-center gap-3 mb-6">
+                <button onClick={startNew} className="glass-button bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-xl text-lg font-bold">
+                  같은 유형 다시 풀기
+                </button>
+                <button onClick={backToLanding} className="bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-xl text-lg font-bold border border-white/10">
+                  유형 다시 고르기
+                </button>
+              </div>
 
               <div className="grid md:grid-cols-2 gap-4 text-left">
                 <div className="bg-slate-900/40 rounded-xl p-4 border border-cyan-400/20">
