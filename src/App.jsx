@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 const OPTION_COUNT = 5;
+const LEARNING_STATS_KEY = 'hanjaQuizLearningStatsV1';
 
 const HANJA_6 = [
   { h: '價', hun: '값', eum: '가' }, { h: '可', hun: '옳을', eum: '가' },
@@ -119,6 +120,7 @@ const readTriple = (items) => items.map((item) => item.r).join(' → ');
 
 const QUIZ_TYPES = [
   { typeNo: 'all', title: '전체 랜덤', desc: '5개 유형을 모두 섞어서 풀기', badge: 'ALL' },
+  { typeNo: 'review', title: '약점 복습', desc: '틀렸거나 복습일이 된 문제만 집중하기', badge: '復' },
   { typeNo: 1, title: '유형1 · 한자 → 음훈', desc: '한자를 보고 알맞은 음훈 고르기', badge: '漢' },
   { typeNo: 2, title: '유형2 · 음훈 → 한자', desc: '음훈을 보고 알맞은 한자 고르기', badge: '훈' },
   { typeNo: 3, title: '유형3 · 한글 음 → 단어', desc: '한글 음만 보고 한자 단어 고르기', badge: '語' },
@@ -136,6 +138,62 @@ const makeOptions = (answer, pool, pick) => {
   return shuffle([answer, ...wrong]).map((text) => ({ text, isCorrect: text === answer }));
 };
 
+const getLearningStats = () => {
+  try {
+    return JSON.parse(localStorage.getItem(LEARNING_STATS_KEY)) || {};
+  } catch {
+    return {};
+  }
+};
+
+const saveLearningStats = (stats) => {
+  localStorage.setItem(LEARNING_STATS_KEY, JSON.stringify(stats));
+};
+
+const getNextReviewAt = (correctStreak) => {
+  const day = 24 * 60 * 60 * 1000;
+  const intervals = [0, 1, 3, 7, 14, 30];
+  return Date.now() + intervals[Math.min(correctStreak, intervals.length - 1)] * day;
+};
+
+const isDueForReview = (stat) => {
+  if (!stat) return false;
+  return stat.wrong > 0 || (stat.nextReviewAt && stat.nextReviewAt <= Date.now());
+};
+
+const getMasteryLevel = (stat) => {
+  if (!stat?.attempts) return '미학습';
+  if (stat.correctStreak >= 3) return '숙달';
+  if (isDueForReview(stat)) return '복습 필요';
+  return '진행 중';
+};
+
+const updateLearningStats = (stats, question, isCorrect) => {
+  const prev = stats[question.itemKey] || {
+    attempts: 0,
+    correct: 0,
+    wrong: 0,
+    correctStreak: 0,
+    lastKind: question.kind,
+    prompt: question.prompt,
+    answer: question.answer
+  };
+  const next = {
+    ...prev,
+    attempts: prev.attempts + 1,
+    correct: prev.correct + (isCorrect ? 1 : 0),
+    wrong: isCorrect ? prev.wrong : prev.wrong + 1,
+    correctStreak: isCorrect ? prev.correctStreak + 1 : 0,
+    lastKind: question.kind,
+    prompt: question.prompt,
+    answer: question.answer,
+    lastAnsweredAt: Date.now(),
+    nextReviewAt: isCorrect ? getNextReviewAt(prev.correctStreak + 1) : Date.now()
+  };
+
+  return { ...stats, [question.itemKey]: next };
+};
+
 const makeWordTriples = (words) => {
   const shuffled = shuffle(words);
   const triples = [];
@@ -145,9 +203,10 @@ const makeWordTriples = (words) => {
   return triples;
 };
 
-function buildQuestionPool(selectedType = 'all') {
+function buildQuestionPool(selectedType = 'all', learningStats = {}) {
   const type1 = HANJA_6.map((item) => ({
     typeNo: 1,
+    itemKey: `type1:${item.h}`,
     kind: '유형1 · 한자보고 음훈 맞추기',
     prompt: item.h,
     helper: '이 한자의 음훈을 고르세요.',
@@ -157,6 +216,7 @@ function buildQuestionPool(selectedType = 'all') {
 
   const type2 = HANJA_6.map((item) => ({
     typeNo: 2,
+    itemKey: `type2:${item.h}`,
     kind: '유형2 · 음훈 보고 한자 맞추기',
     prompt: labelHanja(item),
     helper: '이 음훈에 맞는 한자를 고르세요.',
@@ -166,6 +226,7 @@ function buildQuestionPool(selectedType = 'all') {
 
   const type3 = WORDS_6.map((item) => ({
     typeNo: 3,
+    itemKey: `type3:${item.w}`,
     kind: '유형3 · 한글 음만 보고 한자 단어 맞추기',
     prompt: item.r,
     helper: '한글 음에 맞는 한자 단어를 고르세요.',
@@ -176,6 +237,7 @@ function buildQuestionPool(selectedType = 'all') {
   const triples = makeWordTriples(WORDS_6);
   const type4 = triples.map((triple) => ({
     typeNo: 4,
+    itemKey: `type4:${labelTriple(triple)}`,
     kind: '유형4 · 한글 음만 보고 한자 단어 3개 연속 맞추기',
     prompt: readTriple(triple),
     helper: '순서대로 맞는 한자 단어 3개 묶음을 고르세요.',
@@ -185,6 +247,7 @@ function buildQuestionPool(selectedType = 'all') {
 
   const type5 = IDIOMS.map((item) => ({
     typeNo: 5,
+    itemKey: `type5:${item.w}`,
     kind: '유형5 · 사자성어 맞추기',
     prompt: item.m,
     helper: '뜻에 알맞은 사자성어를 고르세요.',
@@ -193,8 +256,20 @@ function buildQuestionPool(selectedType = 'all') {
   }));
 
   const pools = { 1: type1, 2: type2, 3: type3, 4: type4, 5: type5 };
-  if (selectedType === 'all') return shuffle(Object.values(pools).flat());
-  return shuffle(pools[selectedType] ?? Object.values(pools).flat());
+  const allQuestions = Object.values(pools).flat();
+  if (selectedType === 'review') {
+    const reviewQuestions = allQuestions.filter((question) => isDueForReview(learningStats[question.itemKey]));
+    return shuffle(reviewQuestions.length > 0 ? reviewQuestions : allQuestions);
+  }
+  const basePool = selectedType === 'all' ? allQuestions : (pools[selectedType] ?? allQuestions);
+  const weightedPool = basePool.flatMap((question) => {
+    const stat = learningStats[question.itemKey];
+    if (!stat) return [question];
+    if (stat.correctStreak >= 3 && !isDueForReview(stat)) return Math.random() > 0.65 ? [question] : [];
+    if (isDueForReview(stat)) return [question, question, question];
+    return [question, question];
+  });
+  return shuffle(weightedPool.length > 0 ? weightedPool : basePool);
 }
 
 function getTypeCount(typeNo) {
@@ -209,6 +284,7 @@ function getTypeCount(typeNo) {
 }
 
 export default function App() {
+  const [learningStats, setLearningStats] = useState(getLearningStats);
   const [selectedType, setSelectedType] = useState(null);
   const [questions, setQuestions] = useState(() => buildQuestionPool());
   const [index, setIndex] = useState(0);
@@ -224,9 +300,24 @@ export default function App() {
     [answers]
   );
 
+  const learningSummary = useMemo(() => {
+    const allKeys = buildQuestionPool('all').map((question) => question.itemKey);
+    const uniqueKeys = [...new Set(allKeys)];
+    const mastered = uniqueKeys.filter((key) => getMasteryLevel(learningStats[key]) === '숙달').length;
+    const reviewNeeded = uniqueKeys.filter((key) => getMasteryLevel(learningStats[key]) === '복습 필요').length;
+    const seen = uniqueKeys.filter((key) => learningStats[key]?.attempts > 0).length;
+    return {
+      total: uniqueKeys.length,
+      mastered,
+      reviewNeeded,
+      unseen: uniqueKeys.length - seen,
+      progress: Math.round((mastered / uniqueKeys.length) * 100)
+    };
+  }, [learningStats]);
+
   const startQuiz = (typeNo) => {
     setSelectedType(typeNo);
-    setQuestions(buildQuestionPool(typeNo));
+    setQuestions(buildQuestionPool(typeNo, learningStats));
     setIndex(0);
     setSelected(null);
     setAnswers([]);
@@ -245,15 +336,26 @@ export default function App() {
     setFinished(false);
   };
 
+  const resetLearning = () => {
+    if (!window.confirm('저장된 학습 진도와 약점 기록을 초기화할까요?')) return;
+    setLearningStats({});
+    saveLearningStats({});
+    setQuestions(buildQuestionPool(selectedType ?? 'all', {}));
+  };
+
   const choose = (option) => {
     if (selected) return;
+    const nextStats = updateLearningStats(learningStats, current, option.isCorrect);
+    setLearningStats(nextStats);
+    saveLearningStats(nextStats);
     const entry = {
       no: index + 1,
       kind: current.kind,
       prompt: current.prompt,
       selected: option.text,
       correct: current.answer,
-      isCorrect: option.isCorrect
+      isCorrect: option.isCorrect,
+      mastery: getMasteryLevel(nextStats[current.itemKey])
     };
     setSelected(option.text);
     setAnswers((prev) => [...prev, entry]);
@@ -297,6 +399,25 @@ export default function App() {
 
           {!selectedType ? (
             <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5">
+                  <div className="text-xs text-slate-400">학습 진도</div>
+                  <div className="text-2xl font-bold text-cyan-200">{learningSummary.progress}%</div>
+                </div>
+                <div className="bg-emerald-900/25 rounded-xl p-4 border border-emerald-500/20">
+                  <div className="text-xs text-slate-400">숙달</div>
+                  <div className="text-2xl font-bold text-emerald-200">{learningSummary.mastered}</div>
+                </div>
+                <div className="bg-red-900/25 rounded-xl p-4 border border-red-500/20">
+                  <div className="text-xs text-slate-400">복습 필요</div>
+                  <div className="text-2xl font-bold text-red-200">{learningSummary.reviewNeeded}</div>
+                </div>
+                <div className="bg-slate-900/50 rounded-xl p-4 border border-white/5">
+                  <div className="text-xs text-slate-400">미학습</div>
+                  <div className="text-2xl font-bold text-blue-200">{learningSummary.unseen}</div>
+                </div>
+              </div>
+
               <div className="glass-button rounded-2xl p-6 border border-indigo-400/30 text-center">
                 <p className="text-sm font-bold tracking-widest text-cyan-200/80 mb-2">퀴즈 유형 선택</p>
                 <h2 className="royal-text text-3xl md:text-5xl font-bold text-white">오늘 풀 유형을 고르세요</h2>
@@ -316,7 +437,7 @@ export default function App() {
                         {type.badge}
                       </div>
                       <span className="rounded-full bg-slate-950/60 px-3 py-1 text-xs font-bold text-blue-200 border border-white/10">
-                        {getTypeCount(type.typeNo)}문항
+                        {type.typeNo === 'review' ? `${learningSummary.reviewNeeded}개 복습` : `${getTypeCount(type.typeNo)}문항`}
                       </span>
                     </div>
                     <h3 className="mt-4 text-xl font-bold text-white group-hover:text-cyan-100">{type.title}</h3>
@@ -324,6 +445,16 @@ export default function App() {
                     <div className="mt-4 text-sm font-bold text-cyan-200">시작하기 →</div>
                   </button>
                 ))}
+              </div>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={resetLearning}
+                  className="text-xs text-slate-500 hover:text-red-300 transition-colors"
+                >
+                  학습 기록 초기화
+                </button>
               </div>
             </div>
           ) : !finished ? (
@@ -378,6 +509,7 @@ export default function App() {
                         {selected === current.answer ? '정답입니다.' : '오답입니다.'}
                       </div>
                       <div className="text-sm text-slate-300 mt-1">선택: {selected} · 정답: <span className="font-bold text-emerald-200">{current.answer}</span></div>
+                      <div className="text-xs text-cyan-200 mt-2">학습 상태: {answers[answers.length - 1]?.mastery}</div>
                     </div>
                     <button onClick={next} className="bg-white/10 hover:bg-white/20 text-white px-5 py-3 rounded-lg font-bold border border-white/10">
                       {index + 1 === questions.length ? '결과 보기' : '다음 문제'}
@@ -412,6 +544,7 @@ export default function App() {
                         </div>
                         <div className="text-sm text-slate-100">{answer.prompt}</div>
                         <div className="text-xs text-slate-300 mt-1">선택: {answer.selected}</div>
+                        <div className="text-xs text-cyan-200 mt-1">학습 상태: {answer.mastery}</div>
                         {!answer.isCorrect && <div className="text-xs text-emerald-200 mt-1">정답: {answer.correct}</div>}
                       </div>
                     ))}
